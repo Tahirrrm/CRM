@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Админ-панель CRM{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #eef1f5; color: #2c3e50; min-height: 100vh; }
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 240px; background: #1f2d3d; color: #cbd5e0; flex-shrink: 0;
+            display: flex; flex-direction: column;
+        }
+        .sidebar .brand { padding: 20px; font-size: 1.15em; font-weight: bold; color: #fff; border-bottom: 1px solid #2c3e50; }
+        .sidebar .brand span { color: #4fc3f7; }
+        .sidebar nav a {
+            display: block; padding: 12px 20px; color: #cbd5e0; text-decoration: none;
+            border-left: 3px solid transparent; transition: all .2s;
+        }
+        .sidebar nav a:hover { background: #27374d; color: #fff; border-left-color: #4fc3f7; }
+        .sidebar .foot { margin-top: auto; padding: 16px 20px; font-size: .85em; color: #7f8c9b; }
+        .main { flex: 1; padding: 30px 40px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .topbar h1 { font-size: 1.6em; color: #1f2d3d; }
+        .topbar .user { color: #607d8b; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eceff1; font-size: .95em; }
+        th { color: #78909c; font-size: .85em; text-transform: uppercase; letter-spacing: .5px; }
+        a { color: #0277bd; }
+        .btn {
+            display: inline-block; padding: 7px 14px; border-radius: 6px; font-size: .9em;
+            text-decoration: none; border: none; cursor: pointer; margin-right: 6px;
+        }
+        .btn-blue { background: #0277bd; color: #fff; }
+        .btn-green { background: #2e7d32; color: #fff; }
+        .btn-red { background: #c62828; color: #fff; }
+        .btn-orange { background: #ef6c00; color: #fff; }
+        .btn-gray { background: #607d8b; color: #fff; }
+        .btn:hover { opacity: .88; }
+        .label { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: .8em; font-weight: bold; }
+        .label-green { background: #e8f5e9; color: #2e7d32; }
+        .label-red { background: #ffebee; color: #c62828; }
+        .label-gray { background: #eceff1; color: #546e7a; }
+        .label-orange { background: #fff3e0; color: #ef6c00; }
+        .label-blue { background: #e3f2fd; color: #01579b; }
+        form input[type=text], form input[type=password], form input[type=email], form input[type=color],
+        form input[type=number], form select, form textarea {
+            width: 100%; padding: 9px 12px; border: 1px solid #cfd8dc; border-radius: 6px;
+            font-size: .95em; font-family: inherit; margin-top: 4px;
+        }
+        form label { font-size: .9em; color: #546e7a; display: block; margin-bottom: 14px; font-weight: 600; }
+        .error, .msg { padding: 10px 14px; border-radius: 6px; margin-bottom: 15px; font-size: .92em; }
+        .error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .msg { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .muted { color: #90a4ae; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .stat { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        .stat .num { font-size: 1.9em; font-weight: bold; color: #0277bd; }
+        .stat .cap { color: #78909c; font-size: .85em; margin-top: 4px; }
+        .badge-active { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: .8em; }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">&#9881;&#65039; CRM <span>Админ</span></div>
+        <nav>
+            <a href="{% url 'suppliers:admin_dashboard' %}">&#128202; Главная</a>
+            <a href="{% url 'suppliers:admin_calendar' %}">&#128197; Календарь</a>
+            <a href="{% url 'suppliers:admin_managers' %}">&#128101; Менеджеры</a>
+            <a href="{% url 'suppliers:admin_list' %}">&#128230; Заказчики</a>
+            <a href="{% url 'suppliers:admin_create' %}">&#10133; Новый заказчик</a>
+            <a href="{% url 'suppliers:list' %}" style="border-top: 1px solid #2c3e50; margin-top: 8px;">&#127961;&#65039; CRM (публичный)</a>
+        </nav>
+        <div class="foot">
+            Вы: <b>{{ user.username }}</b><br>
+            {% if user.is_superuser %}
+                <a href="/admin/" class="btn btn-gray" style="margin-top:8px;text-decoration:none;display:inline-block;">Стандартная админка</a><br>
+            {% endif %}
+            <form method="post" action="/admin/logout/" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-gray" style="margin-top:8px;">Выйти</button>
+            </form>
+        </div>
+    </aside>
+    <main class="main">
+        <div class="topbar">
+            <h1>{% block heading %}Админ-панель{% endblock %}</h1>
+            <div class="user">{{ user.username }}</div>
+        </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}error{% else %}msg{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</div>
+</body>
+</html>

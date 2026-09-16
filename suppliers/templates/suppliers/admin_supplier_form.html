@@ -1,0 +1,49 @@
+{% extends "suppliers/base_admin.html" %}
+{% block title %}{{ title }} — Админ-панель{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block content %}
+{% if supplier %}
+    <p class="muted" style="margin-bottom:15px;">ID: {{ supplier.id }} · Создан: {{ supplier.created_at }} · Последняя активность: {{ supplier.last_activity }}</p>
+{% endif %}
+<div class="card">
+    {% if form.non_field_errors %}
+        <div class="error">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <div class="error" style="margin-top:4px;">{{ field.errors }}</div>
+            {% endif %}
+        {% endfor %}
+        {% if is_admin and not supplier %}
+            <label for="responsible_manager">Ответственный менеджер</label>
+            <select name="responsible_manager" id="responsible_manager">
+                <option value="">— не назначен —</option>
+                {% for m in managers %}
+                    <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+        {% if supplier %}
+            <label for="status">Статус</label>
+            <select name="status" id="status">
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if supplier.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <label for="is_active">Состояние</label>
+            <select name="is_active" id="is_active">
+                <option value="on" {% if supplier.is_active %}selected{% endif %}>Активен</option>
+                <option value="off" {% if not supplier.is_active %}selected{% endif %}>Деактивирован</option>
+            </select>
+        {% endif %}
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn btn-blue">&#10004; Сохранить</button>
+            <a href="{% url 'suppliers:admin_list' %}" class="btn btn-gray">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

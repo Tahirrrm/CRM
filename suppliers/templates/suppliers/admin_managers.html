@@ -1,0 +1,80 @@
+{% extends "suppliers/base_admin.html" %}
+{% block title %}Менеджеры — Админ-панель{% endblock %}
+{% block heading %}Менеджеры{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat">
+        <div class="num">{{ managers|length }}</div>
+        <div class="cap">Менеджеров</div>
+    </div>
+</div>
+
+<div class="card">
+    <table>
+        <tr>
+            <th>Менеджер</th>
+            <th>Заказчиков</th>
+            <th>Активных</th>
+            <th>Деактивированных</th>
+            <th>Нагрузка</th>
+        </tr>
+        {% for m in managers %}
+        <tr>
+            <td><a href="{% url 'suppliers:admin_managers' %}?m={{ m.name|urlencode }}">{{ m.name }}</a></td>
+            <td>{{ m.total }}</td>
+            <td><span class="badge-active">{{ m.active }}</span></td>
+            <td>
+                {% if m.inactive %}
+                    <span class="label label-red">{{ m.inactive }}</span>
+                {% else %}
+                    <span class="muted">0</span>
+                {% endif %}
+            </td>
+            <td>
+                <div class="muted" style="font-size:.85em;">{{ m.name }}</div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="muted">Нет менеджеров.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% if selected %}
+<div class="card">
+    <h3 style="margin-bottom:15px;">Заказчики менеджера: {{ selected }}</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>ФИО</th>
+            <th>Организация</th>
+            <th>Город</th>
+            <th>Статус</th>
+            <th>Телефон</th>
+            <th>Активность</th>
+            <th>Состояние</th>
+        </tr>
+        {% for s in suppliers %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td><a href="{% url 'suppliers:admin_edit' s.id %}">{{ s.full_name }}</a></td>
+            <td>{{ s.organization|default:"-" }}</td>
+            <td>{{ s.city|default:"-" }}</td>
+            <td><span class="label label-blue">{{ s.status }}</span></td>
+            <td>{{ s.phone|default:"-" }}</td>
+            <td>{{ s.last_activity }}</td>
+            <td>
+                {% if s.is_active %}
+                    <span class="badge-active">активен</span>
+                {% else %}
+                    <span class="label label-red">деактивирован</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="muted">Нет заказчиков у этого менеджера.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "suppliers/base_admin.html" %}
+{% block title %}Заказчики — Админ-панель{% endblock %}
+{% block heading %}Заказчики{% endblock %}
+{% block content %}
+<div style="margin-bottom:15px;">
+    <a href="{% url 'suppliers:admin_create' %}" class="btn btn-blue">&#10133; Новый заказчик</a>
+</div>
+<div class="card">
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>ФИО</th>
+            <th>Организация</th>
+            <th>Город</th>
+            <th>Телефон</th>
+            <th>Статус</th>
+            <th>Менеджер</th>
+            <th>Активность</th>
+            <th>Состояние</th>
+            <th>Действия</th>
+        </tr>
+        {% for s in suppliers %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.full_name }}</td>
+            <td>{{ s.organization|default:"-" }}</td>
+            <td>{{ s.city|default:"-" }}</td>
+            <td>{{ s.phone|default:"-" }}</td>
+            <td><span class="label label-blue">{{ s.status }}</span></td>
+            <td>{{ s.responsible_manager|default:"-" }}</td>
+            <td>{{ s.last_activity }}</td>
+            <td>
+                {% if s.is_active %}
+                    <span class="badge-active">активен</span>
+                {% else %}
+                    <span class="label label-red">деактивирован</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'suppliers:admin_edit' s.id %}" class="btn btn-orange">&#9998; Редактировать</a>
+                <form method="post" action="{% url 'suppliers:admin_toggle' s.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    {% if s.is_active %}
+                        <button type="submit" class="btn btn-gray">Деактивировать</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-green">Активировать</button>
+                    {% endif %}
+                </form>
+                {% if is_admin %}
+                <a href="{% url 'suppliers:admin_delete' s.id %}" class="btn btn-red">&#128465; Удалить</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="muted">Нет заказчиков. <a href="{% url 'suppliers:admin_create' %}">Добавьте первого</a>.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

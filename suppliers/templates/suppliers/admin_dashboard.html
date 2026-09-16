@@ -1,0 +1,83 @@
+{% extends "suppliers/base_admin.html" %}
+{% block title %}Главная — Админ-панель{% endblock %}
+{% block heading %}Дашборд{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat">
+        <div class="num">{{ total }}</div>
+        <div class="cap">Всего заказчиков</div>
+    </div>
+    <div class="stat">
+        <div class="num" style="color:#2e7d32;">{{ active }}</div>
+        <div class="cap">Активных</div>
+    </div>
+    <div class="stat">
+        <div class="num" style="color:#c62828;">{{ inactive }}</div>
+        <div class="cap">Деактивированных</div>
+    </div>
+    <div class="stat">
+        <div class="num">{{ cities_count }}</div>
+        <div class="cap">Городов</div>
+    </div>
+    <div class="stat">
+        <div class="num">{{ managers_count }}</div>
+        <div class="cap">Менеджеров</div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <h3 style="margin-bottom:15px;">Распределение по статусам</h3>
+    <table>
+        <tr>
+            <th>Статус</th>
+            <th>Количество</th>
+            <th>Доля</th>
+        </tr>
+        {% for label, count in status_counts.items %}
+        <tr>
+            <td>
+                <span class="label
+                    {% if label == 'новый' %}label-blue
+                    {% elif label == 'оплачено' %}label-green
+                    {% elif label == 'заказ' %}label-orange
+                    {% else %}label-gray{% endif %}">{{ label }}</span>
+            </td>
+            <td>{{ count }}</td>
+            <td>
+                {% if total > 0 %}{% widthratio count total 100 %}%{% else %}0%{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:15px;">Последняя активность</h3>
+    <table>
+        <tr>
+            <th>ФИО</th>
+            <th>Организация</th>
+            <th>Статус</th>
+            <th>Активность</th>
+            <th>Состояние</th>
+        </tr>
+        {% for s in recent_suppliers %}
+        <tr>
+            <td><a href="{% url 'suppliers:admin_edit' s.id %}">{{ s.full_name }}</a></td>
+            <td>{{ s.organization|default:"-" }}</td>
+            <td>{{ s.status }}</td>
+            <td>{{ s.last_activity }}</td>
+            <td>
+                {% if s.is_active %}
+                    <span class="badge-active">активен</span>
+                {% else %}
+                    <span class="label label-red">деактивирован</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="muted">Нет заказчиков. <a href="{% url 'suppliers:admin_create' %}">Добавьте первого</a>.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

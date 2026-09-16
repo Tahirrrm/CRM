@@ -1,0 +1,17 @@
+{% extends "suppliers/base_admin.html" %}
+{% block title %}Удалить {{ type }} — Админ-панель{% endblock %}
+{% block heading %}Удаление {% endblock %}
+{% block content %}
+<div class="card">
+    <h3 style="margin-bottom:15px;color:#c62828;">Вы уверены, что хотите удалить {{ type }}?</h3>
+    <p style="margin-bottom:15px;">
+        <b>{{ name }}</b><br>
+        <span class="muted">Действие необратимо.</span>
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-red">&#10060; Удалить</button>
+        <a href="{% url 'suppliers:admin_list' %}" class="btn btn-gray">Отмена</a>
+    </form>
+</div>
+{% endblock %}

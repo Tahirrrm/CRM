@@ -1,0 +1,23 @@
+{% extends "suppliers/base.html" %}
+{% block title %}Изменить статус{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="mb-4">Изменить статус: {{ supplier.full_name }}</h1>
+        <p>Текущий статус: <strong>{{ supplier.status }}</strong></p>
+        <form method="post" class="bg-white p-4 rounded shadow-sm">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <div class="text-danger small">{{ form.status.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <a href="{% url 'suppliers:detail' supplier.id %}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
