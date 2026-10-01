@@ -9,6 +9,7 @@ from django.views import View
 from .decorators import admin_required
 from .forms import StatusForm, SupplierForm
 from .models import STATUSES, CalendarNote, Manager, Supplier
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
           "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
@@ -20,25 +21,24 @@ def months_back(day, n):
     last = calendar.monthrange(year, m)[1]
     return day.replace(year=year, month=m, day=min(day.day, last))
 
+def current_manager(request):
+    profile = getattr(request.user, "manager_profile", None)
+    if profile is None or not profile.is_active:
+        return None
+    return profile
+
+
 def scoped_suppliers(request):
     if request.user.is_superuser:
-        return Supplier.objects.all()
-    if hasattr(request.user, "manager_profile"):
-        profile = request.user.manager_profile
-        if not profile.is_active:
-            return Supplier.objects.none()
-        return Supplier.objects.filter(responsible_manager=profile.full_name)
-    return Supplier.objects.none()
+        return Supplier.objects.select_related("responsible_manager")
+    profile = current_manager(request)
+    if profile is None:
+        return Supplier.objects.none()
+    return Supplier.objects.filter(responsible_manager=profile).select_related(
+        "responsible_manager"
+    )
 
-def scoped_managers(request):
-    if request.user.is_superuser:
-        return Supplier.objects.exclude(responsible_manager__isnull=True).exclude(responsible_manager="")
-    if hasattr(request.user, "manager_profile"):
-        name = request.user.manager_profile.full_name
-        return Supplier.objects.filter(responsible_manager=name)
-    return Supplier.objects.none()
-
-class SupplierListView(View):
+class SupplierListView(LoginRequiredMixin, View):
     def get(self, request):
         q = request.GET.get("q", "").strip()
         status = request.GET.get("status", "").strip()
@@ -52,19 +52,17 @@ class SupplierListView(View):
                 | Q(region__icontains=q)
                 | Q(phone__icontains=q)
                 | Q(email__icontains=q)
-                | Q(responsible_manager__icontains=q)
+                | Q(responsible_manager__full_name__icontains=q)
             )
         if status in dict(STATUSES):
             suppliers = suppliers.filter(status=status)
         if manager:
-            suppliers = suppliers.filter(responsible_manager=manager)
+            suppliers = suppliers.filter(responsible_manager__full_name=manager)
 
         managers = (
-            Supplier.objects.exclude(responsible_manager__isnull=True)
-            .exclude(responsible_manager="")
-            .values_list("responsible_manager", flat=True)
-            .distinct()
-            .order_by("responsible_manager")
+            Manager.objects.filter(is_active=True)
+            .order_by("full_name")
+            .values_list("full_name", flat=True)
         )
 
         return render(request, "suppliers/list.html", {
@@ -76,11 +74,11 @@ class SupplierListView(View):
             "selected_manager": manager,
         })
 
-class SupplierCreateView(UserPassesTestMixin, View):
-    login_url = "/admin/login/"
+class SupplierCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
+    login_url = "/login/"
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.is_superuser or current_manager(self.request) is not None
     
     def get(self, request):
         form = SupplierForm()
@@ -90,44 +88,42 @@ class SupplierCreateView(UserPassesTestMixin, View):
         form = SupplierForm(request.POST)
         if form.is_valid():
             supplier = form.save(commit=False)
-            if hasattr(request.user, "manager_profile"):
-                supplier.responsible_manager = request.user.manager_profile.full_name
+            if not request.user.is_superuser:
+                supplier.responsible_manager = current_manager(request)
             supplier.save()
             messages.success(request, f"Заказчик '{supplier.full_name}' создан.")
             return redirect(reverse("suppliers:detail", args=[supplier.id]))
         return render(request, "suppliers/form.html", {"form": form, "title": "Создать заказчика"})
 
-class SupplierDetailView(View):
+class SupplierDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        supplier = get_object_or_404(Supplier, pk=pk)
+        supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
         return render(request, "suppliers/detail.html", {"supplier": supplier})
 
-class SupplierUpdateView(View):
+class SupplierUpdateView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        supplier = get_object_or_404(Supplier, pk=pk)
+        supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
         form = SupplierForm(instance=supplier)
         return render(request, "suppliers/form.html", {"form": form, "title": "Редактировать заказчика", "supplier": supplier})
     
     def post(self, request, pk):
-        supplier = get_object_or_404(Supplier, pk=pk)
+        supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
             supplier = form.save(commit=False)
-            if hasattr(request.user, "manager_profile"):
-                supplier.responsible_manager = request.user.manager_profile.full_name
             supplier.save()
             messages.success(request, f"Заказчик '{supplier.full_name}' обновлён.")
             return redirect(reverse("suppliers:detail", args=[supplier.id]))
         return render(request, "suppliers/form.html", {"form": form, "title": "Редактировать заказчика", "supplier": supplier})
 
-class SupplierStatusView(View):
+class SupplierStatusView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        supplier = get_object_or_404(Supplier, pk=pk)
+        supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
         form = StatusForm(initial={"status": supplier.status})
         return render(request, "suppliers/status.html", {"form": form, "supplier": supplier})
     
     def post(self, request, pk):
-        supplier = get_object_or_404(Supplier, pk=pk)
+        supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
         form = StatusForm(request.POST)
         if form.is_valid():
             supplier.status = form.cleaned_data["status"]
@@ -136,9 +132,9 @@ class SupplierStatusView(View):
             return redirect(reverse("suppliers:detail", args=[supplier.id]))
         return render(request, "suppliers/status.html", {"form": form, "supplier": supplier})
 
-class SupplierDeactivateView(View):
+class SupplierDeactivateView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        supplier = get_object_or_404(Supplier, pk=pk)
+        supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
         supplier.is_active = False
         supplier.save()
         messages.success(request, f"Заказчик '{supplier.full_name}' деактивирован.")
@@ -156,7 +152,10 @@ def dashboard(request):
         "active": suppliers.filter(is_active=True).count(),
         "inactive": suppliers.filter(is_active=False).count(),
         "cities_count": suppliers.exclude(city__isnull=True).exclude(city="").values("city").distinct().count(),
-        "managers_count": suppliers.exclude(responsible_manager__isnull=True).exclude(responsible_manager="").values("responsible_manager").distinct().count(),
+        "managers_count": suppliers.filter(responsible_manager__isnull=False)
+        .values("responsible_manager")
+        .distinct()
+        .count(),
         "status_counts": status_counts,
         "recent_suppliers": suppliers.order_by("-last_activity")[:5],
         "status_choices": STATUSES,
@@ -280,9 +279,8 @@ def admin_managers(request):
     scope = scoped_suppliers(request)
 
     managers = (
-        scope.exclude(responsible_manager__isnull=True)
-        .exclude(responsible_manager="")
-        .values("responsible_manager")
+        scope.filter(responsible_manager__isnull=False)
+        .values("responsible_manager_id", "responsible_manager__full_name")
         .annotate(
             total=Count("id"),
             active=Count("id", filter=Q(is_active=True)),
@@ -292,7 +290,8 @@ def admin_managers(request):
     manager_data = []
     for m in managers:
         manager_data.append({
-            "name": m["responsible_manager"],
+            "id": m["responsible_manager_id"],
+            "name": m["responsible_manager__full_name"],
             "total": m["total"],
             "active": m["active"],
             "inactive": m["total"] - m["active"],
@@ -300,7 +299,7 @@ def admin_managers(request):
 
     suppliers = None
     if selected:
-        suppliers = scope.filter(responsible_manager=selected).order_by("-last_activity")
+        suppliers = scope.filter(responsible_manager_id=selected).order_by("-last_activity")
 
     context = {
         "managers": manager_data,
@@ -325,16 +324,25 @@ def admin_supplier_list(request):
 
 @admin_required
 def admin_supplier_create(request):
-    managers = list(Manager.objects.filter(is_active=True).values_list("full_name", flat=True))
+    managers = list(
+        Manager.objects.filter(is_active=True)
+        .order_by("full_name")
+        .values_list("id", "full_name")
+    )
     form = SupplierForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         supplier = form.save(commit=False)
         if request.user.is_superuser:
-            chosen = request.POST.get("responsible_manager", "").strip()
-            if chosen in managers:
-                supplier.responsible_manager = chosen
-        elif hasattr(request.user, "manager_profile"):
-            supplier.responsible_manager = request.user.manager_profile.full_name
+            try:
+                chosen_id = int(request.POST.get("responsible_manager", ""))
+            except (TypeError, ValueError):
+                chosen_id = None
+            valid_ids = {mid for mid, _ in managers}
+            supplier.responsible_manager_id = (
+                chosen_id if chosen_id in valid_ids else None
+            )
+        else:
+            supplier.responsible_manager = current_manager(request)
         supplier.save()
         messages.success(request, f"Заказчик '{supplier.full_name}' создан.")
         return redirect(reverse("suppliers:admin_edit", args=[supplier.id]))
@@ -347,6 +355,7 @@ def admin_supplier_create(request):
     }
     return render(request, "suppliers/admin_supplier_form.html", context)
 
+
 @admin_required
 def admin_supplier_edit(request, pk):
     supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
@@ -357,8 +366,8 @@ def admin_supplier_edit(request, pk):
         if new_status in dict(STATUSES):
             supplier.status = new_status
         supplier.is_active = request.POST.get("is_active") == "on"
-        if not request.user.is_superuser and hasattr(request.user, "manager_profile"):
-            supplier.responsible_manager = request.user.manager_profile.full_name
+        if not request.user.is_superuser:
+            supplier.responsible_manager = current_manager(request)
         supplier.save()
         messages.success(request, f"Заказчик '{supplier.full_name}' обновлён.")
         return redirect(reverse("suppliers:admin_edit", args=[supplier.id]))

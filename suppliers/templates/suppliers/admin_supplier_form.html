@@ -22,8 +22,8 @@
             <label for="responsible_manager">Ответственный менеджер</label>
             <select name="responsible_manager" id="responsible_manager">
                 <option value="">— не назначен —</option>
-                {% for m in managers %}
-                    <option value="{{ m }}">{{ m }}</option>
+                {% for m_id, m_name in managers %}
+                    <option value="{{ m_id }}" {% if supplier and supplier.responsible_manager_id == m_id %}selected{% endif %}>{{ m_name }}</option>
                 {% endfor %}
             </select>
         {% endif %}

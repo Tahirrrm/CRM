@@ -20,7 +20,14 @@ class Supplier(models.Model):
     phone = models.CharField("Телефон", max_length=50, blank=True, null=True)
     email = models.EmailField("e-mail", blank=True, null=True)
     status = models.CharField("Статус", max_length=50, choices=STATUSES, default="новый")
-    responsible_manager = models.CharField("Ответственный менеджер", max_length=255, blank=True, null=True)
+    responsible_manager = models.ForeignKey(
+        "suppliers.Manager",
+        verbose_name="Ответственный менеджер",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="suppliers",
+    )
     is_active = models.BooleanField("Активен", default=True)
     created_at = models.DateField("Дата создания", auto_now_add=True)
     last_activity = models.DateField("Последняя активность", auto_now=True)

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from suppliers.models import STATUSES, Supplier
+from suppliers.models import STATUSES, Manager, Supplier
 
 
 SURNAMES = [
@@ -61,12 +61,12 @@ ORGANIZATIONS = [
     "ООО СтанкоИмпорт",
 ]
 
-MANAGERS = [
-    "Петров Пётр",
-    "Сидорова Анна",
-    "Козлов Дмитрий",
-    "Васильева Ольга",
-    "Фёдоров Игорь",
+MANAGER_USERNAMES = [
+    "petrov",
+    "sidorova",
+    "kozlov",
+    "vasileva",
+    "fedorov",
 ]
 
 AREA_CODES = ["495", "812", "383", "343", "843", "831", "351", "846", "3812", "863", "347", "391", "473", "342", "8442", "4872", "3952", "4212", "423", "4852"]
@@ -82,6 +82,19 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"Уже 50+ заказчиков ({current}). Ничего не добавлено."))
             return
 
+        managers = list(
+            Manager.objects.filter(
+                user__username__in=MANAGER_USERNAMES, is_active=True
+            ).select_related("user")
+        )
+        if not managers:
+            self.stdout.write(
+                self.style.ERROR(
+                    "Нет активных менеджеров. Сначала выполните: python manage.py seed_managers"
+                )
+            )
+            return
+
         created = 0
         for i in range(need):
             idx = current + i
@@ -91,7 +104,7 @@ class Command(BaseCommand):
             city, region = CITIES[idx % len(CITIES)]
             area_code = AREA_CODES[idx % len(AREA_CODES)]
             org = ORGANIZATIONS[idx % len(ORGANIZATIONS)]
-            manager = MANAGERS[idx % len(MANAGERS)]
+            manager = managers[idx % len(managers)]
             status = STATUSES[idx % len(STATUSES)][0]
 
             email_domain = org.lower().replace(" ", "").replace("ооо", "").replace("ао", "").replace("зао", "").replace("ип", "").replace(".", "") or "company"
