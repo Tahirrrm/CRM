@@ -19,4 +19,5 @@ urlpatterns = [
     path("admin-panel/suppliers/<int:pk>/edit/", views.admin_supplier_edit, name="admin_edit"),
     path("admin-panel/suppliers/<int:pk>/delete/", views.admin_supplier_delete, name="admin_delete"),
     path("admin-panel/suppliers/<int:pk>/toggle/", views.admin_supplier_toggle, name="admin_toggle"),
+    path("admin-panel/suppliers/<int:pk>/activity/", views.admin_supplier_activity, name="admin_activity"),
 ]

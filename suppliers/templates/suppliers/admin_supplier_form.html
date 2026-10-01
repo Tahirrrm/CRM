@@ -3,7 +3,19 @@
 {% block heading %}{{ title }}{% endblock %}
 {% block content %}
 {% if supplier %}
-    <p class="muted" style="margin-bottom:15px;">ID: {{ supplier.id }} · Создан: {{ supplier.created_at }} · Последняя активность: {{ supplier.last_activity }}</p>
+    <p class="muted" style="margin-bottom:15px;">ID: {{ supplier.id }} · Создан: {{ supplier.created_at }} · Последняя активность: <strong>{{ supplier.last_activity }}</strong></p>
+    <div class="card" style="margin-bottom:20px;">
+        <form method="post" action="{% url 'suppliers:admin_activity' supplier.id %}">
+            {% csrf_token %}
+            <label for="last_activity">Отметить активность</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input type="date" name="last_activity" id="last_activity" value="{{ supplier.last_activity|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" style="max-width:200px;">
+                <button type="submit" class="btn btn-green">Сохранить дату</button>
+                <button type="submit" name="mark_today" value="1" class="btn btn-gray">Отметить сегодня</button>
+                <span class="muted">Активность не меняется при редактировании карточки — только здесь.</span>
+            </div>
+        </form>
+    </div>
 {% endif %}
 <div class="card">
     {% if form.non_field_errors %}

@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.conf import settings
 from django.db import models
 
@@ -30,7 +32,11 @@ class Supplier(models.Model):
     )
     is_active = models.BooleanField("Активен", default=True)
     created_at = models.DateField("Дата создания", auto_now_add=True)
-    last_activity = models.DateField("Последняя активность", auto_now=True)
+    last_activity = models.DateField(
+        "Последняя активность",
+        default=date.today,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Заказчик"
@@ -39,6 +45,10 @@ class Supplier(models.Model):
 
     def __str__(self):
         return self.full_name
+
+    def mark_active(self, when=None):
+        self.last_activity = when or date.today()
+        self.save(update_fields=["last_activity"])
 
 
 class Manager(models.Model):

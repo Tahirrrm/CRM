@@ -377,6 +377,7 @@ def admin_supplier_edit(request, pk):
         "title": "Редактировать заказчика",
         "status_choices": STATUSES,
         "is_admin": request.user.is_superuser,
+        "today": date.today(),
     }
     return render(request, "suppliers/admin_supplier_form.html", context)
 
@@ -403,3 +404,29 @@ def admin_supplier_toggle(request, pk):
         state = "активирован" if supplier.is_active else "деактивирован"
         messages.success(request, f"Заказчик '{supplier.full_name}' {state}.")
     return redirect(reverse("suppliers:admin_list"))
+
+
+@admin_required
+def admin_supplier_activity(request, pk):
+    supplier = get_object_or_404(scoped_suppliers(request), pk=pk)
+    if request.method == "POST":
+        if request.POST.get("mark_today"):
+            when = date.today()
+        else:
+            raw = request.POST.get("last_activity", "").strip()
+            try:
+                when = date.fromisoformat(raw)
+            except ValueError:
+                messages.error(request, "Некорректная дата.")
+                return redirect(reverse("suppliers:admin_edit", args=[supplier.id]))
+            if when > date.today():
+                messages.error(request, "Дата активности не может быть в будущем.")
+                return redirect(reverse("suppliers:admin_edit", args=[supplier.id]))
+        supplier.mark_active(when)
+        if when == date.today():
+            messages.success(request, f"Активность '{supplier.full_name}' отмечена сегодня.")
+        else:
+            messages.success(
+                request, f"Активность '{supplier.full_name}': {when.strftime('%d.%m.%Y')}."
+            )
+    return redirect(reverse("suppliers:admin_edit", args=[supplier.id]))

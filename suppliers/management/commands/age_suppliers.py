@@ -7,7 +7,10 @@ from suppliers.models import Supplier
 
 
 class Command(BaseCommand):
-    help = "Искусственно «состаривает» last_activity у всех заказчиков. 30% — старше 3 месяцев."
+    help = (
+        "Искусственно «состаривает» last_activity у всех заказчиков. 30% — старше 3 месяцев. "
+        "Демо-команда: перезаписывает реальные отметки активности."
+    )
 
     def handle(self, *args, **options):
         ids = list(Supplier.objects.values_list("pk", flat=True))

@@ -30,5 +30,11 @@
         <tr><th>Дата создания</th><td>{{ supplier.created_at }}</td></tr>
         <tr><th>Последняя активность</th><td>{{ supplier.last_activity }}</td></tr>
     </table>
+    {% if supplier.is_active %}
+    <form method="post" action="{% url 'suppliers:admin_activity' supplier.id %}" class="mt-2">
+        {% csrf_token %}
+        <button type="submit" name="mark_today" value="1" class="btn btn-success btn-sm">Отметить активность сегодня</button>
+    </form>
+    {% endif %}
 </div>
 {% endblock %}
