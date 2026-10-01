@@ -16,11 +16,11 @@ STATUSES = [
 
 class Supplier(models.Model):
     full_name = models.CharField("ФИО", max_length=255)
-    region = models.CharField("Регион", max_length=255, blank=True, null=True)
-    city = models.CharField("Город", max_length=255, blank=True, null=True)
-    organization = models.CharField("Организация", max_length=255, blank=True, null=True)
-    phone = models.CharField("Телефон", max_length=50, blank=True, null=True)
-    email = models.EmailField("e-mail", blank=True, null=True)
+    region = models.CharField("Регион", max_length=255, blank=True, default="")
+    city = models.CharField("Город", max_length=255, blank=True, default="")
+    organization = models.CharField("Организация", max_length=255, blank=True, default="")
+    phone = models.CharField("Телефон", max_length=50, blank=True, default="")
+    email = models.EmailField("e-mail", blank=True, default="")
     status = models.CharField("Статус", max_length=50, choices=STATUSES, default="новый")
     responsible_manager = models.ForeignKey(
         "suppliers.Manager",

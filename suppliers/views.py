@@ -151,7 +151,7 @@ def dashboard(request):
         "total": suppliers.count(),
         "active": suppliers.filter(is_active=True).count(),
         "inactive": suppliers.filter(is_active=False).count(),
-        "cities_count": suppliers.exclude(city__isnull=True).exclude(city="").values("city").distinct().count(),
+        "cities_count": suppliers.exclude(city="").values("city").distinct().count(),
         "managers_count": suppliers.filter(responsible_manager__isnull=False)
         .values("responsible_manager")
         .distinct()
