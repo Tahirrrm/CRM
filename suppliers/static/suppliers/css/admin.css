@@ -1,0 +1,26 @@
+/* Дополнения к Bootstrap для админ-панели: календарь и ошибки Django-форм */
+.cal-cell {
+    min-height: 64px;
+}
+.cal-cell.is-empty {
+    background: transparent;
+    border-color: transparent;
+}
+.cal-cell.is-today {
+    border-color: #0d6efd;
+    border-width: 2px;
+}
+.cal-cell a {
+    color: inherit;
+    text-decoration: none;
+}
+.cal-cell a:hover {
+    text-decoration: underline;
+}
+ul.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: .25rem 0 0;
+    color: #dc3545;
+    font-size: .875rem;
+}

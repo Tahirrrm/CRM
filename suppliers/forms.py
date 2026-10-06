@@ -1,9 +1,16 @@
 from django import forms
 
-from .models import STATUSES, Supplier
+from .models import STATUSES, Manager, Supplier
 
 
 class SupplierForm(forms.ModelForm):
+    responsible_manager = forms.ModelChoiceField(
+        queryset=Manager.objects.filter(is_active=True),
+        required=False,
+        label="Ответственный менеджер",
+        empty_label="— не назначен —",
+    )
+
     class Meta:
         model = Supplier
         fields = [
@@ -13,6 +20,9 @@ class SupplierForm(forms.ModelForm):
             "organization",
             "phone",
             "email",
+            "status",
+            "is_active",
+            "responsible_manager",
         ]
         widgets = {
             "full_name": forms.TextInput(attrs={"class": "form-control"}),
@@ -21,6 +31,8 @@ class SupplierForm(forms.ModelForm):
             "organization": forms.TextInput(attrs={"class": "form-control"}),
             "phone": forms.TextInput(attrs={"class": "form-control"}),
             "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
 
@@ -28,5 +40,5 @@ class StatusForm(forms.Form):
     status = forms.ChoiceField(
         label="Новый статус",
         choices=STATUSES,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
     )

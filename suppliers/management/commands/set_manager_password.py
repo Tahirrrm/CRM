@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils.crypto import get_random_string
 
 ALPHABET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+MIN_LENGTH = 8
 
 
 def validate(raw):
@@ -29,7 +30,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--random",
             action="store_true",
-            help="принудительно сгенерировать новый пароль каждому",
+            help="принудительно сгенерировать новый пароль каждому (поведение по умолчанию)",
         )
         parser.add_argument(
             "--length", type=int, default=14, help="длина генерируемого пароля"
@@ -37,11 +38,17 @@ class Command(BaseCommand):
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="только показать, что изменится",
+            help="только показать, что изменится; пароли НЕ сохраняются",
         )
 
     def handle(self, *args, **options):
         common = options["password"]
+        dry_run = options["dry_run"]
+
+        if common and options["random"]:
+            raise CommandError("Нельзя одновременно использовать --password и --random.")
+        if options["length"] < MIN_LENGTH:
+            raise CommandError(f"--length должен быть не меньше {MIN_LENGTH}.")
         if common:
             validate(common)
 
@@ -63,12 +70,25 @@ class Command(BaseCommand):
                 raw = common
             else:
                 raw = get_random_string(options["length"], ALPHABET)
+            if not dry_run:
                 user.set_password(raw)
-                user.save()
+                user.save(update_fields=["password"])
             results.append((user.username, raw))
 
-        if options["dry_run"]:
-            self.stdout.write(self.style.WARNING("DRY RUN — изменения не сохранены"))
+        if dry_run:
+            self.stdout.write(
+                self.style.WARNING("DRY RUN — пароли НЕ изменены, ничего не сохранено")
+            )
+            if common:
+                for username, _ in results:
+                    self.stdout.write(f"  {username:<12} будет установлен пароль «{common}»")
+            else:
+                for username, _ in results:
+                    self.stdout.write(
+                        f"  {username:<12} будет сгенерирован новый пароль "
+                        f"({options['length']} символов)"
+                    )
+            return
 
         if common:
             self.stdout.write(

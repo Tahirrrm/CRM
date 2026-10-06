@@ -58,7 +58,7 @@
                 <td>{{ s.organization|default:"-" }}</td>
                 <td>{{ s.city|default:"-" }}</td>
                 <td>{{ s.phone|default:"-" }}</td>
-                <td><span class="badge {% if s.is_active %}bg-success{% else %}bg-secondary{% endif %}">{{ s.status }}</span></td>
+                <td><span class="badge {{ s.status_badge }}">{{ s.status_display }}</span>{% if not s.is_active %}<span class="badge text-bg-secondary ms-1">деактивирован</span>{% endif %}</td>
                 <td>{{ s.responsible_manager|default:"-" }}</td>
                 <td>{{ s.last_activity }}</td>
             </tr>
@@ -67,5 +67,31 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted small">
+        Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }}
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                    <a class="page-link" href="{% if page_obj.has_previous %}?{% if q %}q={{ q|urlencode }}&amp;{% endif %}{% if status %}status={{ status|urlencode }}&amp;{% endif %}{% if selected_manager %}manager={{ selected_manager|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}">Назад</a>
+                </li>
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if q %}q={{ q|urlencode }}&amp;{% endif %}{% if status %}status={{ status|urlencode }}&amp;{% endif %}{% if selected_manager %}manager={{ selected_manager|urlencode }}&amp;{% endif %}page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{% if page_obj.has_next %}?{% if q %}q={{ q|urlencode }}&amp;{% endif %}{% if status %}status={{ status|urlencode }}&amp;{% endif %}{% if selected_manager %}manager={{ selected_manager|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}">Вперёд</a>
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
 </div>
 {% endblock %}

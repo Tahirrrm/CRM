@@ -1,83 +1,111 @@
 {% extends "suppliers/base_admin.html" %}
 {% block title %}Главная — Админ-панель{% endblock %}
 {% block heading %}Дашборд{% endblock %}
-{% block content %}
-<div class="stats-grid">
-    <div class="stat">
-        <div class="num">{{ total }}</div>
-        <div class="cap">Всего заказчиков</div>
+{% block panel_content %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 mb-4">
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-primary">{{ total }}</div>
+                <div class="text-muted small">Всего заказчиков</div>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="num" style="color:#2e7d32;">{{ active }}</div>
-        <div class="cap">Активных</div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-success">{{ active }}</div>
+                <div class="text-muted small">Активных</div>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="num" style="color:#c62828;">{{ inactive }}</div>
-        <div class="cap">Деактивированных</div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-danger">{{ inactive }}</div>
+                <div class="text-muted small">Деактивированных</div>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="num">{{ cities_count }}</div>
-        <div class="cap">Городов</div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold">{{ cities_count }}</div>
+                <div class="text-muted small">Городов</div>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="num">{{ managers_count }}</div>
-        <div class="cap">Менеджеров</div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold">{{ managers_count }}</div>
+                <div class="text-muted small">Менеджеров</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="card" style="margin-top:20px;">
-    <h3 style="margin-bottom:15px;">Распределение по статусам</h3>
-    <table>
-        <tr>
-            <th>Статус</th>
-            <th>Количество</th>
-            <th>Доля</th>
-        </tr>
-        {% for label, count in status_counts.items %}
-        <tr>
-            <td>
-                <span class="label
-                    {% if label == 'новый' %}label-blue
-                    {% elif label == 'оплачено' %}label-green
-                    {% elif label == 'заказ' %}label-orange
-                    {% else %}label-gray{% endif %}">{{ label }}</span>
-            </td>
-            <td>{{ count }}</td>
-            <td>
-                {% if total > 0 %}{% widthratio count total 100 %}%{% else %}0%{% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+<div class="card card-body mb-4">
+    <h2 class="h5 mb-3">Распределение по статусам</h2>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Статус</th>
+                    <th>Количество</th>
+                    <th>Доля</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for value, label, count in status_rows %}
+                <tr>
+                    <td>
+                        <span class="badge {% if value == 'new' %}text-bg-secondary{% elif value == 'contact' %}text-bg-info{% elif value == 'negotiation' %}text-bg-primary{% elif value == 'decision' %}text-bg-warning{% elif value == 'order' %}text-bg-success{% elif value == 'paid' %}text-bg-dark{% else %}text-bg-light{% endif %}">{{ label }}</span>
+                    </td>
+                    <td>{{ count }}</td>
+                    <td>
+                        {% if total > 0 %}{% widthratio count total 100 %}%{% else %}0%{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div class="card">
-    <h3 style="margin-bottom:15px;">Последняя активность</h3>
-    <table>
-        <tr>
-            <th>ФИО</th>
-            <th>Организация</th>
-            <th>Статус</th>
-            <th>Активность</th>
-            <th>Состояние</th>
-        </tr>
-        {% for s in recent_suppliers %}
-        <tr>
-            <td><a href="{% url 'suppliers:admin_edit' s.id %}">{{ s.full_name }}</a></td>
-            <td>{{ s.organization|default:"-" }}</td>
-            <td>{{ s.status }}</td>
-            <td>{{ s.last_activity }}</td>
-            <td>
-                {% if s.is_active %}
-                    <span class="badge-active">активен</span>
-                {% else %}
-                    <span class="label label-red">деактивирован</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="muted">Нет заказчиков. <a href="{% url 'suppliers:admin_create' %}">Добавьте первого</a>.</td></tr>
-        {% endfor %}
-    </table>
+<div class="card card-body">
+    <h2 class="h5 mb-3">Последняя активность</h2>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ФИО</th>
+                    <th>Организация</th>
+                    <th>Статус</th>
+                    <th>Активность</th>
+                    <th>Состояние</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in recent_suppliers %}
+                <tr>
+                    <td><a href="{% url 'suppliers:admin_edit' s.id %}">{{ s.full_name }}</a></td>
+                    <td>{{ s.organization|default:"-" }}</td>
+                    <td><span class="badge {{ s.status_badge }}">{{ s.status_display }}</span></td>
+                    <td>{{ s.last_activity }}</td>
+                    <td>
+                        {% if s.is_active %}
+                            <span class="badge text-bg-success">активен</span>
+                        {% else %}
+                            <span class="badge text-bg-secondary">деактивирован</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-muted">Нет заказчиков. <a href="{% url 'suppliers:admin_create' %}">Добавьте первого</a>.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
