@@ -1,60 +1,40 @@
 {% extends "suppliers/base_admin.html" %}
 {% block title %}{{ title }} — Админ-панель{% endblock %}
 {% block heading %}{{ title }}{% endblock %}
-{% block content %}
+{% block panel_content %}
 {% if supplier %}
-    <p class="muted" style="margin-bottom:15px;">ID: {{ supplier.id }} · Создан: {{ supplier.created_at }} · Последняя активность: <strong>{{ supplier.last_activity }}</strong></p>
-    <div class="card" style="margin-bottom:20px;">
+    <p class="text-muted small mb-3">ID: {{ supplier.id }} · Создан: {{ supplier.created_at }} · Последняя активность: <strong>{{ supplier.last_activity }}</strong></p>
+    <div class="card card-body mb-4">
         <form method="post" action="{% url 'suppliers:admin_activity' supplier.id %}">
             {% csrf_token %}
-            <label for="last_activity">Отметить активность</label>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <input type="date" name="last_activity" id="last_activity" value="{{ supplier.last_activity|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" style="max-width:200px;">
-                <button type="submit" class="btn btn-green">Сохранить дату</button>
-                <button type="submit" name="mark_today" value="1" class="btn btn-gray">Отметить сегодня</button>
-                <span class="muted">Активность не меняется при редактировании карточки — только здесь.</span>
+            <label class="form-label" for="last_activity">Отметить активность</label>
+            <div class="d-flex gap-2 align-items-center flex-wrap mb-2">
+                <input type="date" name="last_activity" id="last_activity" class="form-control w-auto" value="{{ supplier.last_activity|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+                <button type="submit" class="btn btn-success btn-sm">Сохранить дату</button>
+                <button type="submit" name="mark_today" value="1" class="btn btn-secondary btn-sm">Отметить сегодня</button>
             </div>
+            <div class="form-text">Активность не меняется при редактировании карточки — только здесь.</div>
         </form>
     </div>
 {% endif %}
-<div class="card">
+<div class="card card-body">
     {% if form.non_field_errors %}
-        <div class="error">{{ form.non_field_errors }}</div>
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
     {% endif %}
     <form method="post">
         {% csrf_token %}
         {% for field in form %}
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <div class="error" style="margin-top:4px;">{{ field.errors }}</div>
-            {% endif %}
+            <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="text-danger small">{{ field.errors }}</div>
+                {% endif %}
+            </div>
         {% endfor %}
-        {% if is_admin and not supplier %}
-            <label for="responsible_manager">Ответственный менеджер</label>
-            <select name="responsible_manager" id="responsible_manager">
-                <option value="">— не назначен —</option>
-                {% for m_id, m_name in managers %}
-                    <option value="{{ m_id }}" {% if supplier and supplier.responsible_manager_id == m_id %}selected{% endif %}>{{ m_name }}</option>
-                {% endfor %}
-            </select>
-        {% endif %}
-        {% if supplier %}
-            <label for="status">Статус</label>
-            <select name="status" id="status">
-                {% for value, label in status_choices %}
-                    <option value="{{ value }}" {% if supplier.status == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            <label for="is_active">Состояние</label>
-            <select name="is_active" id="is_active">
-                <option value="on" {% if supplier.is_active %}selected{% endif %}>Активен</option>
-                <option value="off" {% if not supplier.is_active %}selected{% endif %}>Деактивирован</option>
-            </select>
-        {% endif %}
-        <div style="margin-top:20px;">
-            <button type="submit" class="btn btn-blue">&#10004; Сохранить</button>
-            <a href="{% url 'suppliers:admin_list' %}" class="btn btn-gray">Отмена</a>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">&#10004; Сохранить</button>
+            <a href="{% url 'suppliers:admin_list' %}" class="btn btn-secondary">Отмена</a>
         </div>
     </form>
 </div>

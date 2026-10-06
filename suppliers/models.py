@@ -5,13 +5,34 @@ from django.db import models
 
 
 STATUSES = [
-    ("новый", "новый"),
-    ("контакт установлен", "контакт установлен"),
-    ("переговоры", "переговоры"),
-    ("принимается решение", "принимается решение"),
-    ("заказ", "заказ"),
-    ("оплачено", "оплачено"),
+    ("new", "новый"),
+    ("contact", "контакт установлен"),
+    ("negotiation", "переговоры"),
+    ("decision", "принимается решение"),
+    ("order", "заказ"),
+    ("paid", "оплачено"),
 ]
+
+STATUS_LABELS = dict(STATUSES)
+DEFAULT_STATUS = "new"
+
+STATUS_BADGES = {
+    "new": "text-bg-secondary",
+    "contact": "text-bg-info",
+    "negotiation": "text-bg-primary",
+    "decision": "text-bg-warning",
+    "order": "text-bg-success",
+    "paid": "text-bg-dark",
+}
+DEFAULT_STATUS_BADGE = "text-bg-light"
+
+
+def get_status_label(value):
+    return STATUS_LABELS.get(value, value)
+
+
+def get_status_badge(value):
+    return STATUS_BADGES.get(value, DEFAULT_STATUS_BADGE)
 
 
 class Supplier(models.Model):
@@ -21,7 +42,7 @@ class Supplier(models.Model):
     organization = models.CharField("Организация", max_length=255, blank=True, default="")
     phone = models.CharField("Телефон", max_length=50, blank=True, default="")
     email = models.EmailField("e-mail", blank=True, default="")
-    status = models.CharField("Статус", max_length=50, choices=STATUSES, default="новый")
+    status = models.CharField("Статус", max_length=50, choices=STATUSES, default=DEFAULT_STATUS)
     responsible_manager = models.ForeignKey(
         "suppliers.Manager",
         verbose_name="Ответственный менеджер",
@@ -45,6 +66,14 @@ class Supplier(models.Model):
 
     def __str__(self):
         return self.full_name
+
+    @property
+    def status_display(self):
+        return get_status_label(self.status)
+
+    @property
+    def status_badge(self):
+        return get_status_badge(self.status)
 
     def mark_active(self, when=None):
         self.last_activity = when or date.today()

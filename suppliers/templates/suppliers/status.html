@@ -4,7 +4,7 @@
 <div class="row justify-content-center">
     <div class="col-md-6">
         <h1 class="mb-4">Изменить статус: {{ supplier.full_name }}</h1>
-        <p>Текущий статус: <strong>{{ supplier.status }}</strong></p>
+        <p>Текущий статус: <strong>{{ supplier.status_display }}</strong></p>
         <form method="post" class="bg-white p-4 rounded shadow-sm">
             {% csrf_token %}
             {{ form.non_field_errors }}

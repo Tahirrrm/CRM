@@ -24,7 +24,7 @@
         <tr><th>Организация</th><td>{{ supplier.organization|default:"-" }}</td></tr>
         <tr><th>Телефон</th><td>{{ supplier.phone|default:"-" }}</td></tr>
         <tr><th>e-mail</th><td>{{ supplier.email|default:"-" }}</td></tr>
-        <tr><th>Статус</th><td><span class="badge {% if supplier.is_active %}bg-success{% else %}bg-secondary{% endif %}">{{ supplier.status }}</span></td></tr>
+        <tr><th>Статус</th><td><span class="badge {{ supplier.status_badge }}">{{ supplier.status_display }}</span>{% if not supplier.is_active %}<span class="badge text-bg-secondary ms-1">деактивирован</span>{% endif %}</td></tr>
         <tr><th>Ответственный менеджер</th><td>{{ supplier.responsible_manager|default:"-" }}</td></tr>
         <tr><th>Активен</th><td>{% if supplier.is_active %}Да{% else %}Нет{% endif %}</td></tr>
         <tr><th>Дата создания</th><td>{{ supplier.created_at }}</td></tr>

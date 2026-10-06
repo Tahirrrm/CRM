@@ -1,120 +1,112 @@
 {% extends "suppliers/base_admin.html" %}
 {% block title %}Календарь — Админ-панель{% endblock %}
 {% block heading %}Календарь{% endblock %}
-{% block content %}
-<style>
-    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-    .cal-head .mon { font-size: 1.3em; font-weight: bold; color: #1f2d3d; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-    .cal-cell { min-height: 64px; background: #f7f9fb; border-radius: 8px; padding: 6px; border: 1px solid #eceff1; }
-    .cal-cell.empty { background: transparent; border-color: transparent; }
-    .cal-cell.today { border-color: #4fc3f7; }
-    .cal-cell .day-num { font-size: .8em; color: #78909c; }
-    .badge-cnt { display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; padding: 2px 8px; border-radius: 10px; font-size: .75em; font-weight: bold; }
-    .badge-red { background: #ffebee; color: #c62828; }
-    .badge-blue { background: #e3f2fd; color: #01579b; }
-    .badge-green { background: #e8f5e9; color: #2e7d32; }
-    .cal-cell a { text-decoration: none; color: inherit; display: block; }
-    .note { border: 1px solid #eceff1; border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
-    .note .txt { font-size: .95em; white-space: pre-wrap; }
-    .note .meta { font-size: .8em; color: #90a4ae; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .legend { display: flex; gap: 15px; margin-top: 12px; font-size: .85em; color: #546e7a; }
-</style>
-<div class="card">
-    <div class="cal-head">
-        <a href="{% url 'suppliers:admin_calendar' %}?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-gray">&larr; Назад</a>
-        <div class="mon">{{ month_name }} {{ year }}</div>
-        <a href="{% url 'suppliers:admin_calendar' %}?year={{ next_year }}&month={{ next_month }}" class="btn btn-gray">Вперёд &rarr;</a>
+{% block panel_content %}
+<div class="card card-body mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'suppliers:admin_calendar' %}?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-secondary btn-sm">&larr; Назад</a>
+        <div class="h4 mb-0">{{ month_name }} {{ year }}</div>
+        <a href="{% url 'suppliers:admin_calendar' %}?year={{ next_year }}&month={{ next_month }}" class="btn btn-secondary btn-sm">Вперёд &rarr;</a>
     </div>
-    <div class="cal-grid">
+    <div class="row row-cols-7 g-1">
         {% for wd in weekdays %}
-            <div style="text-align:center; font-size:.8em; color:#90a4ae; font-weight:bold;">{{ wd }}</div>
+            <div class="col small text-muted text-center fw-semibold">{{ wd }}</div>
         {% endfor %}
         {% for c in cells %}
             {% if c %}
-                <div class="cal-cell{% if today.day == c.day and today.month == month and today.year == year %} today{% endif %}">
-                    <a href="{% url 'suppliers:admin_calendar' %}?year={{ year }}&month={{ month }}&date={{ c.iso }}">
-                        <span class="day-num">{{ c.day }}</span>
-                        {% if c.overdue %}
-                            <span class="badge-cnt badge-red">&#128222; {{ c.overdue }}</span>
-                        {% endif %}
-                        {% if c.total > c.overdue %}
-                            <span class="badge-cnt badge-blue">{{ c.total }}</span>
-                        {% endif %}
-                        {% if c.notes %}
-                            <span class="badge-cnt badge-green">&#9998; {{ c.notes }}</span>
-                        {% endif %}
-                    </a>
+                <div class="col">
+                    <div class="cal-cell border rounded p-2 bg-body-tertiary{% if today.day == c.day and today.month == month and today.year == year %} is-today{% endif %}">
+                        <a href="{% url 'suppliers:admin_calendar' %}?year={{ year }}&month={{ month }}&date={{ c.iso }}">
+                            <span class="d-block small text-muted">{{ c.day }}</span>
+                            {% if c.overdue %}
+                                <span class="badge text-bg-danger">&#128222; {{ c.overdue }}</span>
+                            {% endif %}
+                            {% if c.total > c.overdue %}
+                                <span class="badge text-bg-info">{{ c.total }}</span>
+                            {% endif %}
+                            {% if c.notes %}
+                                <span class="badge text-bg-success">&#9998; {{ c.notes }}</span>
+                            {% endif %}
+                        </a>
+                    </div>
                 </div>
             {% else %}
-                <div class="cal-cell empty"></div>
+                <div class="col">
+                    <div class="cal-cell is-empty"></div>
+                </div>
             {% endif %}
         {% endfor %}
     </div>
-    <div class="legend">
-        <span><span class="badge-cnt badge-red">&#128222;</span> — нужно обзвонить (активность более 3 мес. назад)</span>
-        <span><span class="badge-cnt badge-blue">#</span> — активность в этот день</span>
-        <span><span class="badge-cnt badge-green">&#9998;</span> — есть заметки</span>
+    <div class="d-flex flex-wrap gap-3 small text-muted mt-3">
+        <span><span class="badge text-bg-danger">&#128222;</span> — нужно обзвонить (активность более 3 мес. назад)</span>
+        <span><span class="badge text-bg-info">#</span> — активность в этот день</span>
+        <span><span class="badge text-bg-success">&#9998;</span> — есть заметки</span>
     </div>
 </div>
 
-<div class="card">
-    <h3 style="color:#1f2d3d;">Заметки на {{ selected }}</h3>
-    <form method="post" action="{% url 'suppliers:admin_calendar' %}?year={{ year }}&month={{ month }}&date={{ selected|date:'Y-m-d' }}" style="margin-top:12px;">
+<div class="card card-body mb-4">
+    <h2 class="h5 mb-3">Заметки на {{ selected }}</h2>
+    <form method="post" action="{% url 'suppliers:admin_calendar' %}?year={{ year }}&month={{ month }}&date={{ selected|date:'Y-m-d' }}" class="mb-3">
         {% csrf_token %}
         <input type="hidden" name="date" value="{{ selected|date:'Y-m-d' }}">
-        <textarea name="text" rows="2" placeholder="Введите текст заметки..." style="width:100%; padding:9px 12px; border:1px solid #cfd8dc; border-radius:6px; font-family:inherit; font-size:.95em; resize:vertical;"></textarea>
-        <button type="submit" name="add_note" class="btn btn-blue" style="margin-top:8px;">&#10133; Добавить заметку</button>
+        <textarea name="text" rows="2" class="form-control mb-2" placeholder="Введите текст заметки..."></textarea>
+        <button type="submit" name="add_note" class="btn btn-primary btn-sm">&#10133; Добавить заметку</button>
     </form>
     {% for n in selected_notes %}
-        <div class="note">
-            <div class="txt">{{ n.text }}</div>
-            <div class="meta">
+        <div class="border rounded p-3 mb-2">
+            <div>{{ n.text }}</div>
+            <div class="d-flex justify-content-between align-items-center small text-muted mt-2">
                 <span>Автор: {{ n.author.username }} · {{ n.created_at|date:"d.m.Y H:i" }}</span>
-                <form method="post" action="{% url 'suppliers:admin_calendar' %}?year={{ n.date|date:'Y' }}&month={{ n.date|date:'n' }}&date={{ n.date|date:'Y-m-d' }}" style="display:inline;">
+                <form method="post" action="{% url 'suppliers:admin_calendar' %}?year={{ n.date|date:'Y' }}&month={{ n.date|date:'n' }}&date={{ n.date|date:'Y-m-d' }}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="date" value="{{ n.date|date:'Y-m-d' }}">
                     <input type="hidden" name="note_id" value="{{ n.id }}">
-                    <button type="submit" name="delete_note" class="btn btn-red">&#128465; Удалить</button>
+                    <button type="submit" name="delete_note" class="btn btn-danger btn-sm">&#128465; Удалить</button>
                 </form>
             </div>
         </div>
     {% empty %}
-        <p class="muted" style="margin-top:12px;">Заметок на этот день нет.</p>
+        <p class="text-muted mb-0">Заметок на этот день нет.</p>
     {% endfor %}
 </div>
 
-<div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="color:#1f2d3d;">Список для обзвона</h3>
-        <span class="label {% if overdue %}label-red{% else %}label-green{% endif %}">{{ overdue|length }} шт.</span>
+<div class="card card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Список для обзвона</h2>
+        <span class="badge {% if overdue %}text-bg-danger{% else %}text-bg-success{% endif %}">{{ overdue|length }} шт.</span>
     </div>
-    <p class="muted" style="margin:8px 0 14px;">Заказчики, чья последняя активность была до {{ cutoff }} (более 3 месяцев назад)</p>
+    <p class="text-muted small mb-3">Заказчики, чья последняя активность была до {{ cutoff }} (более 3 месяцев назад)</p>
     {% if overdue %}
-        <table>
-            <tr>
-                <th>ФИО</th>
-                <th>Организация</th>
-                <th>Телефон</th>
-                <th>Город</th>
-                <th>Статус</th>
-                <th>Менеджер</th>
-                <th>Посл. активность</th>
-            </tr>
-            {% for s in overdue %}
-                <tr>
-                    <td><a href="{% url 'suppliers:admin_edit' s.id %}">{{ s.full_name }}</a></td>
-                    <td>{{ s.organization }}</td>
-                    <td>{{ s.phone }}</td>
-                    <td>{{ s.city }}</td>
-                    <td><span class="label label-{% if s.status == 'оплачено' %}green{% elif s.status == 'новый' %}gray{% else %}orange{% endif %}">{{ s.status }}</span></td>
-                    <td>{{ s.responsible_manager|default:"—" }}</td>
-                    <td>{{ s.last_activity }}</td>
-                </tr>
-            {% endfor %}
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Организация</th>
+                        <th>Телефон</th>
+                        <th>Город</th>
+                        <th>Статус</th>
+                        <th>Менеджер</th>
+                        <th>Посл. активность</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in overdue %}
+                        <tr>
+                            <td><a href="{% url 'suppliers:admin_edit' s.id %}">{{ s.full_name }}</a></td>
+                            <td>{{ s.organization }}</td>
+                            <td>{{ s.phone }}</td>
+                            <td>{{ s.city }}</td>
+                            <td><span class="badge {{ s.status_badge }}">{{ s.status_display }}</span></td>
+                            <td>{{ s.responsible_manager|default:"—" }}</td>
+                            <td>{{ s.last_activity }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
-        <p class="muted">Заказчиков для обзвона нет.</p>
+        <p class="text-muted mb-0">Заказчиков для обзвона нет.</p>
     {% endif %}
 </div>
 {% endblock %}
