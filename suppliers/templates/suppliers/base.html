@@ -6,24 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CRM{% endblock %}</title>
     <link href="{% static 'suppliers/vendor/bootstrap-5.3.3/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'suppliers/css/theme.css' %}" rel="stylesheet">
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-    <div class="container d-flex flex-wrap align-items-center gap-3">
-        <a class="navbar-brand" href="{% url 'suppliers:list' %}">CRM</a>
+<body>
+<nav class="app-navbar py-2 mb-4">
+    <div class="container-xxl px-lg-4 d-flex flex-wrap align-items-center gap-3">
+        <a class="app-brand" href="{% url 'suppliers:list' %}">CRM</a>
 
-        <a class="btn btn-outline-light btn-sm" href="{% url 'suppliers:admin_dashboard' %}">Админ-панель</a>
+        <a class="app-nav-link" href="{% url 'suppliers:admin_dashboard' %}">Админ-панель</a>
 
         {% if user.is_authenticated %}
             <div class="d-flex align-items-center gap-3 ms-auto">
-                <span class="navbar-text text-white">
+                <span class="app-nav-text">
                     Вы: <b>{% if user.manager_profile.full_name %}{{ user.manager_profile.full_name }} ({{ user.username }}){% else %}{{ user.username }}{% endif %}</b>
                     {% if user.is_superuser %}<span class="badge text-bg-light ms-1">суперпользователь</span>{% endif %}
                 </span>
                 <form method="post" action="{% url 'logout' %}" class="d-inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+                    <button type="submit" class="btn btn-secondary btn-sm">Выйти</button>
                 </form>
             </div>
         {% endif %}

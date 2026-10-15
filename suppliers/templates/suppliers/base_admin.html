@@ -7,28 +7,28 @@
 {% block content %}
 <div class="row g-4">
     <aside class="col-12 col-md-3 col-xl-2">
-        <div class="bg-dark text-white rounded p-3">
-            <div class="d-flex align-items-center gap-2 mb-3 fw-bold fs-5">
+        <div class="admin-sidebar p-3">
+            <div class="brand d-flex align-items-center gap-2 mb-3 fs-5">
                 <span>&#9881;&#65039;</span>
-                <span>CRM <span class="text-info">Админ</span></span>
+                <span>CRM <span>Админ</span></span>
             </div>
             <nav class="d-grid gap-1">
                 <a href="{% url 'suppliers:admin_dashboard' %}"
-                   class="btn btn-sm text-start {% if request.resolver_match.url_name == 'admin_dashboard' %}btn-light text-dark fw-semibold{% else %}btn-outline-light{% endif %}">&#128202; Главная</a>
+                   class="admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">&#128202; Главная</a>
                 <a href="{% url 'suppliers:admin_calendar' %}"
-                   class="btn btn-sm text-start {% if request.resolver_match.url_name == 'admin_calendar' %}btn-light text-dark fw-semibold{% else %}btn-outline-light{% endif %}">&#128197; Календарь</a>
+                   class="admin-nav-link {% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">&#128197; Календарь</a>
                 <a href="{% url 'suppliers:admin_managers' %}"
-                   class="btn btn-sm text-start {% if request.resolver_match.url_name == 'admin_managers' %}btn-light text-dark fw-semibold{% else %}btn-outline-light{% endif %}">&#128101; Менеджеры</a>
+                   class="admin-nav-link {% if request.resolver_match.url_name == 'admin_managers' %}active{% endif %}">&#128101; Менеджеры</a>
                 <a href="{% url 'suppliers:admin_list' %}"
-                   class="btn btn-sm text-start {% if request.resolver_match.url_name == 'admin_list' %}btn-light text-dark fw-semibold{% else %}btn-outline-light{% endif %}">&#128230; Заказчики</a>
+                   class="admin-nav-link {% if request.resolver_match.url_name == 'admin_list' %}active{% endif %}">&#128230; Заказчики</a>
                 <a href="{% url 'suppliers:admin_create' %}"
-                   class="btn btn-sm text-start {% if request.resolver_match.url_name == 'admin_create' %}btn-light text-dark fw-semibold{% else %}btn-outline-light{% endif %}">&#10133; Новый заказчик</a>
-                <a href="{% url 'suppliers:list' %}" class="btn btn-outline-light btn-sm text-start mt-2">&#127961;&#65039; CRM (публичный)</a>
+                   class="admin-nav-link {% if request.resolver_match.url_name == 'admin_create' %}active{% endif %}">&#10133; Новый заказчик</a>
+                <a href="{% url 'suppliers:list' %}" class="admin-nav-link mt-2">&#127961;&#65039; CRM (публичный)</a>
             </nav>
-            <hr class="text-secondary my-3">
-            <div class="small text-white-50">Вы: <b>{{ user.username }}</b></div>
+            <hr class="my-3">
+            <div class="small text-muted">Вы: <b>{{ user.username }}</b></div>
             {% if user.is_superuser %}
-                <a href="/admin/" class="btn btn-outline-light btn-sm w-100 mt-2">Стандартная админка</a>
+                <a href="/admin/" class="btn btn-secondary btn-sm w-100 mt-2">Стандартная админка</a>
             {% endif %}
         </div>
     </aside>
